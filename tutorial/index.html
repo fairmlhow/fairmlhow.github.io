@@ -1,0 +1,1500 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <title>nips17tutorial</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/simple.css" id="theme">
+    <link rel="stylesheet" href="css/custom.css">
+ </head>
+
+  <body>
+    <div class="reveal">
+      <div class="slides">
+
+
+<section>
+  <h1>Fairness in Machine Learning</h1>
+  <h2>NIPS 2017 Tutorial</h2>
+  <h3 style="color:#444">Solon Barocas and Moritz Hardt</h3>
+  <img style="margin:-20px 0 0 100px;width:450px;"
+src="assets/logos/cornell.svg">
+  <img style="margin:-20px 0 0 100px;width:450px;"
+src="assets/logos/berkeley.png">
+
+<p><span style="color:#900"><em>Press &rarr; to advance slides.</em></span></p>
+</section>
+
+<!-- section data-background-image="assets/bgbubble.svg">
+<div style="margin-top:20%;font-size:72pt;">
+Slides available at<br />
+<a href="http://mrtz.org/nips17/">
+mrtz.org/nips17
+</a>
+</div>
+</section -->
+<section>
+
+<div>Table of contents (for web version only)</div>
+
+<div class="left">
+<p><strong><a href="#/part-1">Part I</a></strong></p>
+<ul>
+<li><a href="#/discrimination-law">Discrimination law</a></li>
+<li><a href="#/how-machines">How machines learn to discriminate</a></li>
+<li><a href="#/three-problems">Three different problems</a></li>
+</ul>
+
+</div>
+<div class="right">
+<p><strong><a href="#/part-2">Part II</a></strong></p>
+<ul>
+<li><a href="#/formal-setup">Formal setup</a></li>
+<li><a href="#/three-criteria">Three fundamental criteria</a></li>
+<ul>
+<li><a href="#/independence">Independence</a>,
+<a href="#/separation">Separation</a>,
+<a href="#/sufficiency">Sufficiency</a></li>
+<li><a href="#/trade-offs">Trade-offs</a></li>
+</ul>
+<li><a href="#/limitations">Limitations of observational criteria</a></li>
+<li><a href="#/causal">Causal inference</a></li>
+<li><a href="#/measurement">Measurement</a></li>
+<li><a href="#/conclusion">Conclusion</a></li>
+</ul>
+</div>
+</section>
+<section id="part-1">
+<img src="assets/can-an-algorithm-hire-better-than-a-human.png" />
+</section>
+
+<section>
+<div style="margin-top:200px;">"[H]iring could become faster and less expensive, and […] lead recruiters to more highly skilled people who are better matches for their companies. Another potential result: a more diverse workplace. The software relies on data to surface candidates from a wide variety of places and match their skills to the job requirements, free of human biases."</div><br />
+<a href="https://www.nytimes.com/2015/06/26/upshot/can-an-algorithm-hire-better-than-a-human.html">Miller (2015)</a>
+</section>
+
+<section>
+<img src="assets/when-algorithms-discriminate.png" />
+</section>
+
+<section>
+<div style="margin-top:200px;">"But software is not free of human influence. Algorithms are written and maintained by people, and machine learning algorithms adjust what they do based on people’s behavior. As a result […] algorithms can reinforce human prejudices."</div><br />
+<a href="https://www.nytimes.com/2015/07/10/upshot/when-algorithms-discriminate.html">Miller (2015)</a>
+</section>
+
+<section>
+  <h2>Bias as a technical matter</h2>
+<p class="fragment">Selection, sampling, reporting bias
+</p>
+<p class="fragment">Bias of an estimator
+</p>
+<p class="fragment">Inductive bias
+</p>
+<p class="fragment">Of course, these raise ethical issues, too
+</p>
+</section>
+
+<section>
+  <h2>Isn’t discrimination the very point of machine learning?</h2>
+<p class="fragment"><em>Unjustified</em> basis for differentiation
+</p>
+<p class="fragment">Practical irrelevance
+</p>
+<p class="fragment">Moral irrelevance
+</p>
+</section>
+
+<section>
+  <h2>Discrimination is not a general concept</h2>
+  <p class="fragment">It is <strong>domain</strong> specific
+</p>
+<p class="fragment">Concerned with important opportunities that affect people’s life chances
+</p>
+<p class="fragment">It is <strong>feature</strong> specific
+</p>
+<p class="fragment">Concerned with socially salient qualities that have served as the basis for unjustified and systematically adverse treatment in the past
+</p>
+</section>
+
+<section>
+  <h2>Regulated domains</h2>
+<ul>
+<li>
+<strong>Credit</strong> (Equal Credit Opportunity Act)
+</li>
+<li>
+<strong>Education</strong> (Civil Rights Act of 1964; Education Amendments of 1972)
+</li>
+<li>
+<strong>Employment</strong> (Civil Rights Act of 1964)
+</li>
+<li>
+<strong>Housing</strong> (Fair Housing Act)
+</li>
+<li>
+<strong>‘Public Accommodation’</strong> (Civil Rights Act of 1964)
+</li>
+</ul>
+  <p class="fragment">Extends to marketing and advertising; not limited to final decision
+</p>
+  <p class="fragment">This list sets aside complex web of laws that regulates the government
+</p>
+</section>
+
+<section>
+<p>
+  <h2>Legally recognized ‘protected classes’</h2>
+<strong>Race</strong> (Civil Rights Act of 1964);
+<strong>Color</strong> (Civil Rights Act of 1964);
+<strong>Sex</strong> (Equal Pay Act of 1963; Civil Rights Act of 1964);
+<strong>Religion</strong> (Civil Rights Act of 1964);
+<strong>National origin</strong> (Civil Rights Act of 1964);
+<strong>Citizenship</strong> (Immigration Reform and Control Act);
+<strong>Age</strong> (Age Discrimination in Employment Act of 1967);
+<strong>Pregnancy</strong> (Pregnancy Discrimination Act);
+<strong>Familial status</strong> (Civil Rights Act of 1968);
+<strong>Disability status</strong> (Rehabilitation Act of 1973; Americans with Disabilities Act of 1990);
+<strong>Veteran status</strong> (Vietnam Era Veterans' Readjustment Assistance Act of 1974; Uniformed Services Employment and Reemployment Rights Act);
+<strong>Genetic information</strong> (Genetic Information Nondiscrimination Act)
+</p>
+</section>
+
+<section id="discrimination-law">
+<h2>Discrimination Law: Two Doctrines</h2>
+<div class="left">
+  <p class="fragment"><Strong>Disparate Treatment</Strong>
+  <p class="fragment">Formal
+  <p class="fragment">or<br /><br />
+  Intentional
+</div>
+<div class="right">
+  <p class="fragment"><Strong>Disparate Impact</Strong>
+  <p class="fragment">Unjustified
+  <p class="fragment">or<br /><br />
+  Avoidable
+</div>
+</p>
+</section>
+
+<section>
+<h2>Disparate Treatment</h2>
+
+  <p class="fragment"><strong>Formal</strong>: explicitly considering class membership
+  <p class="fragment">Even if it is relevant
+  <p class="fragment"><strong>Intentional</strong>: purposefully attempting to discriminate without direct reference to class membership
+  <p class="fragment">Pretext or ‘motivating factor’
+</section>
+    
+    <section>
+<h2>Disparate Impact</h2>
+  <p class="fragment">1. Plaintiff must first establish that decision procedure has a disparate impact
+  <p class="fragment">‘Four-fifths rule’
+  <p class="fragment">2. Defendant must provide a justification for making decisions in this way
+  <p class="fragment">‘Business necessity’ and 'job-related’
+  <p class="fragment">3. Finally, plaintiff has opportunity to show that defendant could achieve same goal using a different procedure that would result in a smaller disparity
+  <p class="fragment">‘Alternative practice’
+</section>
+
+<section>
+<h2>What does discrimination law aim to achieve?</h2>
+<div class="fragment left"><Strong>Disparate Treatment</Strong>
+  <p class="fragment">Procedural fairness
+    <p class="fragment">Equality of opportunity
+</div>
+<div class="fragment right"><Strong>Disparate Impact</Strong>
+  <p class="fragment">Distributive justice
+      <p class="fragment">Minimized inequality of outcome
+</div>
+</p>
+</section>
+
+        <section>
+<h2>Non-discrimination, equality of opportunity, and equality of outcome</h2>
+Narrow notions of equality of opportunity are concerned with ensuring that decision-making treats similar people similarly on the basis of relevant features, given their current degree of similarity<br>
+</p>
+</section>
+    
+        <section>
+<h2>Non-discrimination, equality of opportunity, and equality of outcome</h2>
+Broader notions of equality of opportunity are concerned with organizing society in such a way that people of equal talents and ambition can achieve equal outcomes over the course of their lives<br>
+</p>
+</section>    
+    
+            <section>
+<h2>Non-discrimination, equality of opportunity, and equality of outcome</h2>
+Somewhere in between is a notion of equality of opportunity that forces decision-making to treat seemingly dissimilar people similarly, on the belief that their current dissimilarity is the result of past injustice<br>
+</p>
+</section>
+
+        <section>
+<h2>Tension between disparate treatment and disparate impact</h2>
+  <p class="fragment"><em>Ricci v. DeStefano</em>
+  <p class="fragment">Texas House Bill 588
+</p>
+</section>
+
+        <section>
+<h2>The incidence and persistence of discrimination</h2>
+Callback rate 50% higher for applicants with white names than equally qualified applicants with black names<br />
+<a href="http://www.jstor.org/stable/3592802">Bertrand, Mullainathan (2004)</a><br /><br />
+No change in the degree of discrimination experienced by black job applicants over the past 25 years<br />
+<a href="http://www.pnas.org/content/114/41/10870.short">Quillian, Pager, Hexel, Midtbøen (2017)</a>
+</p>
+</section>
+
+        <section>
+<h2>The benefits of formalizing decision-making</h2>
+Formal procedures can limit opportunities to exercise prejudicial discretion or fall victim to implicit bias
+  <p class="fragment">Automated underwriting increased approval rates for minority and low-income applicants by 30% while improving the overall accuracy of default predictions<br />
+<a href="http://www.tandfonline.com/doi/abs/10.1080/10511482.2002.9521447">Gates, Perry, Zorn (2002)</a>
+</p>
+</section>
+
+        <section>
+<h2>The limits of formalization</h2>
+Research has established that formal procedures still leave room for employers to exercise discretion selectively<br />
+<a href="http://journals.sagepub.com/doi/abs/10.1177/0730888499026002002">Wilson, Sakura-Lemessy, West (1999)</a><br /><br />
+  <p class="fragment">and that bias still affects formal assessments<br />
+<a href="http://psycnet.apa.org/?fa=main.doiLanding&doi=10.1037/0021-9010.91.3.538">McKay, McDaniel (2006)</a>
+</p>
+</section>
+
+        <section>
+<h2>Machine learning as pinnacle of formal decision-making?</h2>
+  <p class="fragment">Only what the data supports?
+  <p class="fragment">Withhold protected features?
+  <p class="fragment">Automate decision-making, thereby limiting discretion?
+</section>
+
+        <section id="how-machines">
+<h2>How <em>machines</em> learn to discriminate</h2>
+Skewed sample<br>
+Tainted examples<br>
+Limited features<br>
+Sample size disparity<br>
+Proxies<br /><br />
+<a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2477899">B, Selbst (2016)</a>
+</section>
+
+        <section>
+<h2>Skewed sample</h2>
+  <p class="fragment">Police records measure “some complex interaction between criminality, policing strategy, and community-policing relations”<br />
+<a href="http://onlinelibrary.wiley.com/doi/10.1111/j.1740-9713.2016.00960.x/full">Lum, Isaac (2016)</a>
+</section>
+
+        <section>
+<h2>Skewed sample: feedback loop</h2>
+  <p class="fragment">Future observations of crime confirm predictions
+  <p class="fragment">Fewer opportunities to observe crime that contradicts predictions
+  <p class="fragment">Initial bias may compound over time
+</section>
+
+        <section>
+<h2>Tainted examples</h2>
+<img src="assets/colleges.png" />
+</section>
+
+        <section>
+<h2>Tainted examples: three variants</h2>
+  <p class="fragment">Learn to predict hiring decisions<br>
+  <p class="fragment">Learn to predict who will succeed on the job (e.g., annual review score)<br>
+  <p class="fragment">Learn to predict how employees will score on objective measure (e.g., sales)<br>
+</section>
+
+        <section>
+<h2>Limited features</h2>
+  <p class="fragment">Features may be less informative or less reliably collected for certain parts of the population<br>
+  <p class="fragment">A feature set that supports accurate predictions for the majority group may not for a minority group<br>
+  <p class="fragment">Different models with the same reported accuracy can have a very different distribution of error across population<br>
+</section>
+
+        <section>
+<h2>Sample size disparity</h2>
+<img src="assets/sample-size-disparity.png" /><br />
+<a href="https://medium.com/@mrtz/how-big-data-is-unfair-9aa544d739de">H (2014)</a>
+</section>
+
+        <section>
+<h2>Proxies</h2>
+  <p class="fragment">In many cases, making accurate predictions will mean considering features that are correlated with class membership
+  <p class="fragment">With sufficiently rich data, class memberships will be unavoidably encoded across other features
+</section>
+
+        <section>
+<h2>Proxies</h2>
+  <p class="fragment">No self-evident way to determine when a relevant attribute is <em>too</em> correlated with proscribed features
+  <p class="fragment">Not a meaningful question when dealing with a large <em>set</em> of attributes
+</section>
+
+<section>
+<h2>Discrimination Law: Two Doctrines</h2>
+<div class="fragment left">
+<Strong>Disparate Treatment</Strong><br /><br />
+Formal<br /><br />
+or<br /><br />
+Intentional
+</div>
+<div class="fragment right">
+<Strong>Disparate Impact</Strong><br /><br />
+Unjustified<br /><br />
+or<br /><br />
+Avoidable
+</div>
+</p>
+</section>
+
+        <section id="three-problems">
+<h2>Three different problems</h2>
+  <p class="fragment"><strong>Discovering unobserved differences in performance</strong><br>
+Skewed sample<br>
+Tainted examples<br />
+  <p class="fragment"><strong>Coping with observed differences in performance</strong><br>
+Limited features<br>
+Sample size disparity<br />
+  <p class="fragment"><strong>Understanding the causes of disparities in predicted outcome</strong><br>
+Proxies
+</section>
+<section id="part-2">
+  <h1>Fairness in Machine Learning</h1>
+  <h2>NIPS 2017 Tutorial &mdash; Part II</h2>
+  <h3 style="color:#444">Solon Barocas and Moritz Hardt</h3>
+  <img style="margin:-20px 0 0 100px;width:450px;"
+src="assets/logos/cornell.svg">
+  <img style="margin:-20px 0 0 100px;width:450px;"
+src="assets/logos/berkeley.png">
+</section>
+
+<section>
+<div style="margin-left:400px;margin-top:20px;border-radius:5px;width:800px;background-color:#00f;padding:3px;">
+<span style="color:#fff;font-family:sans-serif;font-size:20pt;">Pop-up ad</span>
+<img style="height:55px;margin-left:600px;" src="assets/window-close.png"/>
+<div style="background-color:#eee;">
+<img style="border:0px solid
+#000;width:1200px;margin-top:0px;"src="assets/startup.svg" />
+</div>
+</div>
+<p class="fragment">
+Running example: Hiring ad for (fictitious?) AI startup
+</p>
+</section>
+
+<section id="formal-setup">
+<h2>Formal setup</h2>
+<ul>
+<li class="fragment">$X$ features of an individual (browsing history etc.)</li>
+<li class="fragment">$A$ sensitive attribute (here, gender)</li>
+<li class="fragment">$C=c(X,A)$ predictor (here, show ad or not)</li>
+<li class="fragment">$Y$ target variable (here, SWE)</li>
+</ul>
+<p class="fragment">Note: random variables in the same probability space</p>
+<p class="fragment"><strong>Notation:</strong>
+$\mathbb{P}_a\{E\}=\mathbb{P}\{E\mid A=a\}.$</p>
+</section>
+
+<section>
+<h2>Formal setup</h2>
+<p class="fragment">Score function is any random variable
+$R=r(X,A)\in[0,1].$</p>
+<p class="fragment">
+Can be turned into (binary) predictor by thresholding
+</p>
+<p class="fragment">Example: <em>Bayes optimal</em> score 
+given by $r(x, a) = \mathbb{E}[Y\mid X=x, A=a]$</p>
+</section>
+
+<section id="three-criteria">
+<h2>Three fundamental criteria</h2>
+<p class="fragment"><strong>Independence</strong>: $C$ independent of $A$
+</p>
+<p class="fragment"><strong>Separation</strong>: $C$ independent of $A$ conditional on $Y$
+</p>
+<p class="fragment"><strong>Sufficiency</strong>: $Y$ independent of $A$ conditional on $C$
+</p>
+<p class="fragment">Lots of other criteria are related to these</p>
+</section>
+
+<section id="independence">
+<h2>First criterion: Independence</h2>
+<p class="fragment">Require $C$ and $A$ to be independent, denoted $C\bot A$</p>
+<p class="fragment">That is,  for all groups $a,b$ and all values $c$:
+<br /> $\mathbb{P}_a\{C = c\} = \mathbb{P}_b\{C = c\}$</p>
+</section>
+
+<section>
+<h2>Variants of independence</h2>
+<p class="fragment">
+Sometimes called <em>demographic parity</em>, <em>statistical parity</em>
+</p>
+<p class="fragment">
+When $C$ is binary $0/1$-variables, this means<br />
+$\mathbb{P}_a\{C = 1\} = \mathbb{P}_b\{C = 1\}$ for all groups $a,b.$
+</p>
+<p class="fragment">
+Approximate versions:
+</p>
+<div class="fragment left">
+$$
+\frac{\mathbb{P}_a\{ C = 1 \}}
+{\mathbb{P}_b\{ C = 1 \}} \ge 1-\epsilon
+$$
+</div>
+<div class="fragment right" style="padding-top:15px;">
+$$
+\left|\mathbb{P}_a\{ C = 1 \}-
+\mathbb{P}_b\{ C = 1 \}\right|\le\epsilon
+$$
+</div>
+</p>
+</section>
+
+<section>
+<h2>Achieving independence</h2>
+<p class="fragment"><strong>Post-processing</strong>:
+<a href="https://arxiv.org/abs/1412.3756">Feldman, Friedler, Moeller, Scheidegger, Venkatasubramanian (2014)</a>
+</p>
+<p class="fragment"><strong>Training time constraint</strong>: 
+<a href="http://ieeexplore.ieee.org/document/5360534/">Calders, Kamiran, Pechenizkiy (2009)</a>
+<p class="fragment"><strong>Pre-processing</strong>:
+Via representation learning &mdash;
+<a href="http://proceedings.mlr.press/v28/zemel13.pdf">Zemel, Yu, Swersky, Pitassi, Dwork (2013)</a> and
+<a href="https://arxiv.org/abs/1511.00830">Louizos, Swersky, Li, Welling, Zemel (2016)</a>;
+Via feature adjustment &mdash;
+<a href="https://arxiv.org/abs/1610.08077">Lum-Johndrow (2016)</a> 
+</p>
+<p class="fragment">
+Many more...
+</p> 
+</section>
+
+<section>
+<h2>Representation learning approach</h2>
+<img src="assets/zemel2.svg"
+style="width:1600px;height:900px;position:fixed;left:0;top:100px;">
+<div style="position:fixed;left:230px;top:420px;font-size:80px;">
+$X,A$
+</div>
+<div style="position:fixed;left:790px;top:420px;font-size:80px;">
+$Z$
+</div>
+<div style="position:fixed;left:1250px;top:420px;font-size:80px;">
+$C=c(Z)$
+</div>
+<div class="fragment"  style="position:fixed;left:650px;top:630px;">
+$\max I(X ; Z)$ <br />
+$\min I(A ; Z)$
+</div>
+<div class="fragment" style="position:fixed;left:650px;top:210px;">
+&quot;A Fair and Rich Z.&quot;<br />
+&mdash;Rich Zemel
+</div>
+</section>
+
+<section>
+<h2>Shortcomings of independence</h2>
+<p class="fragment">
+Ignores possible correlation between in $Y$ and $A$.<br />
+<span class="fragment">
+In particular, rules out perfect predictor $C=Y.$
+</span>
+</p>
+<p class="fragment">
+Premits <strong>laziness</strong>:<br />
+Accept the qualified in one group, random people in other
+</p>
+<p class="fragment">
+Allows to trade false negatives for false positives.
+</p>
+<p class="fragment">
+Conflates desirable long-term goal with 
+algorithmic constraint
+</p>
+</section>
+
+<section id="separation">
+<h2>Second criterion: Separation</h2>
+<p class="fragment">Require $R$ and $A$ to be independent <em>conditional on target variable $Y$</em>,<br /> denoted $R\bot A \mid Y$</p>
+<p class="fragment">That is,  for all groups $a,b$ and all values $r$ and $y$:
+<br /> $\mathbb{P}_a\{R = r\mid Y=y\} = \mathbb{P}_b\{R = r\mid Y=y\}$</p>
+</section>
+
+<section>
+<h2>Second criterion: Separation</h2>
+<p>Require $R$ and $A$ to be independent <em>conditional on target variable $Y$</em>,<br /> denoted $R\bot A \mid Y$</p>
+<div class="left"  style="width:900px;">
+<div class="theorem"><strong>Definition.</strong>&nbsp;&nbsp;
+Random variable $R$ <em>separated</em> from $A$ if $R\bot A\mid Y.$
+</div>
+</div>
+<div class="fragment">
+<div class="graphnode" style="position:fixed;left:1000px;top:400px;">$A$</div>
+<div class="graphedge" style="position:fixed;left:1085px;top:430px;">&nbsp;</div>
+<div class="graphnode" style="position:fixed;left:1150px;top:400px;">$Y$</div>
+<div class="graphnode" style="position:fixed;left:1300px;top:400px;">$R$</div>
+<div class="graphedge" style="position:fixed;left:1235px;top:430px;">&nbsp;</div>
+</div>
+<p class="fragment" style="clear:both;margin-top:300px;">
+Proposed in <a href="https://arxiv.org/abs/1610.02413">H, Price, Srebro (2016)</a>;<br />
+<a href="https://arxiv.org/abs/1610.08452">Zafar, Valera, Rodriguez, Gummadi (2016)</a></p>
+</section>
+
+<section>
+<h2>Desirable properties of separation</h2>
+<p class="fragment"><strong>Optimality compatibility</strong><br />$R=Y$ is allowed</p>
+<p class="fragment"><strong>Penalizes lazyness</strong><br />
+Incentive to reduce errors uniformly in all groups</p>
+
+<p class="fragment" style="margin-top:100px;">
+Recall, neither of these is achieved by independence.
+</p>
+</section>
+</section>
+
+<section>
+<h2>Achieving separation</h2>
+<p class="fragment">Method from <a
+href="https://arxiv.org/abs/1610.02413">H, Price, Srebro (2016)</a>:<br />
+Post-processing correct of score function</p>
+<p class="fragment">
+Post-processing: Any thresholding of $R$ (possibly depending on $A$)<br /> 
+<span class="fragment">No retraining/changes to $R$</span>
+</p>
+</section>
+
+<section>
+<p>Given score $R$, plot (TPR, FPR) for all possible thresholds</p>
+<img class="fragment plain" style="width:600px;" src="assets/roc/roc_curve_1.svg" />
+</section>
+
+<section>
+<p>Look at ROC curve for each group</p>
+<img class="plain" style="width:600px;" src="assets/roc/roc_curve_2.svg" />
+</section>
+
+<section>
+<p>Feasible region: Trade-offs realizable in all groups</p>
+<img class="plain" style="width:600px;" src="assets/roc/roc_curve_3.svg" />
+</section>
+
+<section>
+<p>Given cost for (FP, FN), calculate optimal point in feasible region</p>
+<img class="plain" style="width:600px;" src="assets/roc/roc_curve_3.svg" />
+</section>
+
+<section>
+<h2>Postprocessing gaurantees</h2>
+<p class="fragment">
+<strong>Optimality preservation:</strong>
+If $R$ is close to Bayes optimal, then the output of postprocessing is close to
+optimal among all separated scores.
+</p>
+<p class="fragment">
+<em>This does not mean it's necessarily good!</em>
+</p>
+<p class="fragment">
+Alternatives to post-processing:<br /> (1) Collect more data. <br />(2) Achieve constraint
+at training time.
+</p>
+
+</section>
+
+<section>
+<h2>Via optimization at training time</h2>
+Explored by Woodworth-Gunasekar-Ohannessian-Srebro (2017).
+
+<p class="fragment">
+Fix function class ${\cal H}$ and lost function $\ell$ solve
+\[
+\min_{h\in{\cal H}}\mathbb{E}\ell(h(X, A), Y)
+\]
+
+\[
+\text{ s.t. } h(X,A)\bot A\mid Y
+\]
+</p>
+<p class="fragment">
+<strong>Highly intractable.</strong><br />
+<span class="fragment">
+Hence, consider moment relaxation of separation:
+\[
+\sigma_{RA}\sigma_{Y}^2 = \sigma_{RY}\sigma_{YA}
+\]
+where $\sigma_{UV}=\mathbb{E}(U-\mathbb{E}U)(V-\mathbb{E}V)$ is the covariance.
+<span>
+</p>
+</section>
+
+<section id="sufficiency">
+<h2>Third criterion: Sufficiency</h2>
+<div class="fragment theorem"><strong>Definition.</strong>&nbsp;&nbsp;
+Random variable $R$ is <em>sufficient for</em> $A$ if $Y\bot A\mid R.$
+</div>
+<div class="fragment">
+<div class="graphnode" style="position:fixed;left:600px;top:535px;">$A$</div>
+<div class="graphedge" style="position:fixed;left:685px;top:565px;">&nbsp;</div>
+<div class="graphnode" style="position:fixed;left:750px;top:535px;">$R$</div>
+<div class="graphnode" style="position:fixed;left:900px;top:535px;">$Y$</div>
+<div class="graphedge" style="position:fixed;left:835px;top:565px;">&nbsp;</div>
+</div>
+</section>
+
+<section>
+<h2>Why sufficiency?</h2>
+
+<p class="fragment">
+For the purpose of predicting $Y$,<br />
+we don't need to see $A$ when we have $R.$
+</p>
+
+<p class="fragment">
+Note: Sufficiency satisfied by Bayes optimal score $r(X,A)=\mathbb{E}[Y\mid X=x,A=a].$
+</p>
+</section>
+
+<section>
+<h2>How to achieve sufficiency?</h2>
+
+<p class="fragment">
+Sufficiency implied by <em>calibration by group</em>:<br />
+\[
+\mathbb{P}\{ Y = 1 \mid R = r, A = a \} = r
+\]
+</p>
+
+<p class="fragment">
+Calibration by group can be achieved by<br />
+various standard calibration methods<br />
+(if necessary, applied for each group).
+</p>
+</section>
+
+<section>
+<h2>Calibration via Platt scaling</h2>
+
+<div class="left" style="width:1100px;">
+<p class="fragment" data-fragment-index="1">
+Given uncalibrated score $R$,
+fit a sigmoid function<br />
+$S = \frac{1}{1+\exp(\alpha R + \beta)}$
+against target $Y$
+</p>
+<p class="fragment" data-fragment-index="2"><br />
+For instance by minimizing log loss $-\mathbb{E}[Y\log S + (1-Y)\log(1-S)]$
+</p>
+</div>
+<div class="right" style="width:500px;">
+<img class="fragment" data-fragment-index="1" src="assets/logit_function.svg" />
+</div>
+</section>
+
+<section id="trade-offs">
+<h2>Trade-offs are necessary</h2>
+<blockquote class="fragment" style="font-size:44pt;">
+Any two of the three criteria we saw are  <br />
+<strong>mutually exclusive except in degenerate cases</strong>.
+</blockquote>
+</section>
+
+<section>
+<h2>Trade-offs: Independence vs Sufficiency</h2>
+<div class="theorem"><strong>Proposition.</strong>&nbsp;&nbsp;
+If $A\not\bot Y,$ then either independence holds or sufficiency but not both.
+</div>
+<div class="fragment" style="text-align:left;margin-left:150px;"><em>Proof.</em>&nbsp;&nbsp;
+<div class="fragment">
+If $A\not\bot Y$ and $A\bot Y\mid R,$ then $A\not\bot R.$
+</div>
+<div class="fragment">
+<div style="margin-left:1250px;width:30px;height:30px;background-color:#000;" />
+</div>
+</div>
+</section>
+
+<section>
+<h2>Trade-offs: Independence vs Separation</h2>
+<div class="theorem"><strong>Proposition.</strong>&nbsp;&nbsp;
+If $A\not\bot Y$ and $R\not\bot Y,$ then either independence holds or separation but not both.
+</div>
+<div class="fragment" style="text-align:left;margin-left:150px;"><em>Proof.</em>&nbsp;&nbsp;
+<div class="fragment">
+If $R\bot A$ and $R\bot A\mid Y,$ then 
+either $A\bot Y$ or $R\bot Y.$
+</div>
+<div class="fragment">
+<div style="margin-left:1250px;width:30px;height:30px;background-color:#000;" />
+</div>
+</div>
+</section>
+
+<section>
+<h2>Trade-offs: Separation vs Sufficiency</h2>
+<div class="fragment theorem"><strong>Proposition.</strong>&nbsp;&nbsp;
+Assume all events in the joint distribution of $(A,R,Y)$ have positive probability.
+
+If $A\not\bot Y,$ then either separation holds or sufficiency but not both.
+</div>
+
+<p class="fragment">Variants observed by 
+<a href="https://arxiv.org/abs/1610.07524">Chouldechova (2016)</a>; <br /> 
+<a href="https://arxiv.org/abs/1609.05807">Kleinberg, Mullainathan, Raghavan (2016)</a>.
+</p>
+</section>
+
+<section>
+<h2>Trade-offs: Separation vs Sufficiency</h2>
+<div class="theorem"><strong>Proposition.</strong>&nbsp;&nbsp;
+Assume all events in the joint distribution of $(A,R,Y)$ have positive probability.
+
+If $A\not\bot Y,$ then either separation holds or sufficiency but not both.
+</div>
+<div class="fragment" style="text-align:left;margin-left:150px;"><em>Proof.</em>&nbsp;&nbsp;
+<div class="fragment">
+Standard fact (see Wasserman Theorem 17.2):<br>
+$A\bot R\mid Y$  and  $A\bot Y\mid R$  implies $A\bot (R, Y)$ <span
+class="fragment">(implies $A\bot Y$)</span>.
+<div/>
+<div class="fragment" >
+Hence,<br />
+$A\not\bot Y$ implies either $A\not\bot R\mid Y$  or  $A\not\bot Y\mid R$.
+</div>
+<div class="fragment">
+<div style="margin-left:1250px;width:30px;height:30px;background-color:#000;" />
+</div>
+</div>
+</section>
+
+<section>
+<h2>Visualizing trade-offs</h2>
+<img style="width:1000px;" src="assets/viz.png" />
+<a href="https://research.google.com/bigpicture/attacking-discrimination-in-ml/"><span
+style="font-family:monospace;">research.google.com/bigpicture</span></a>
+</section>
+
+<section>
+<p style="font-weight:bold;">Poster session on Wed Dec 6th 6:30&ndash;10:30p @ Pacific Ballroom #74
+</p>
+<ul>
+<li>
+<a href="http://papers.nips.cc/paper/7088-fair-clustering-through-fairlets.pdf">
+Fair Clustering Through Fairlets</a>.
+Chierichetti, Kumar, Lattanzi, Vassilvitskii
+</li>
+<li>
+<a href="https://arxiv.org/abs/1709.02012">On Fairness and Calibration</a>.
+Pleiss, Raghavan, Wu, Kleinberg, Weinberger
+<li>
+<a href="https://arxiv.org/abs/1706.02744">Avoiding Discrimination through Causal Reasoning</a>.
+Kilbertus, Rojas-Carulla, Parascandolo, H, Janzing, Schölkopf
+</li>
+<li>
+<a href="https://arxiv.org/abs/1704.03354">Optimized Pre-Processing for Discrimination Prevention</a>.
+Calmon, Wei, Vinzamuri, Ramamurthy, Varshney
+</li>
+<li>
+<a href="https://papers.nips.cc/paper/6670-recycling-privileged-learning-and-distribution-matching-for-fairness">
+Recycling Privileged Learning and Distribution Matching for Fairness</a>.
+Quadrianto, Sharmanska
+</li>
+<li>
+<a href="https://arxiv.org/abs/1707.00010">
+From Parity to Preference-based Notions of Fairness in Classification</a>.
+Bilal Zafar, Valera, Rodriguez, Gummadi, Weller
+</li>
+<li>
+<a href="http://papers.nips.cc/paper/6885-beyond-parity-fairness-objectives-for-collaborative-filtering">
+Beyond Parity: Fairness Objectives for Collaborative Filtering</a>.
+Yao, Huang
+</li>
+</ul>
+</section>
+
+<section data-background-color="#222222">
+<h2 style="margin-top:300px;font-weight:bold;">The COMPAS debate </h2>
+<!--p><img src="assets/machine-bias.png" /></p -->
+</section>
+
+<section data-background-color="#222222" data-background-image="assets/propublica.jpg" data-background-size="contain">
+
+</section>
+
+<section>
+<h2>Essence of COMPAS debate</h2>
+<p>ProPublica's main charge:</p>
+<blockquote class="fragment">Black defendants face higher false positive
+rate.</blockquote>
+<p class="fragment">Northpointe's main defense:</p>
+<blockquote class="fragment">
+Scores are calibrated by group.
+</blockquote>
+</section>
+
+<section>
+<h2>Word of caution about COMPAS debate</h2>
+<p class="fragment">
+<a href="https://arxiv.org/abs/1701.08230">Corbett-Davies, Pierson, Feller, Goel, Huq (2017)</a>:<br /><br />
+</p>
+<blockquote class="fragment">
+Neither calibration nor equality of false positive rates<br /> rule out <em>blatantly unfair</em> practices.
+</blockquote>
+</section>
+
+
+<section>
+<img src="assets/sam/sam1.svg" style="width:1600px;height:900px;position:fixed;left:0;top:0;">
+<h2 style="position:fixed;top:20px;left:300px;">Calibration is insufficient</h2>
+<div class="fragment" style="position:fixed;left:600px;top:505px;">probabilities of reoffending</div>
+<div class="fragment" style="position:fixed;left:1250px;top:300px;width:250px;">detain all above 0.5</div>
+</section>
+
+<section>
+<img src="assets/sam/sam2.svg" style="width:1600px;height:900px;position:fixed;left:0;top:0;">
+<h2 style="position:fixed;top:20px;left:300px;">Calibration is insufficient</h2>
+<div style="position:fixed;left:500px;top:505px;">average reoffending rate 0.4</div>
+</section>
+
+<section>
+<img src="assets/sam/sam3.svg" style="width:1600px;height:900px;position:fixed;left:0;top:0;">
+<h2 style="position:fixed;top:20px;left:300px;">Calibration is insufficient</h2>
+<div style="position:fixed;left:500px;top:505px;">average reoffending rate 0.4</div>
+<div style="position:fixed;left:600px;top:805px;">calibrated new scores</div>
+</section>
+
+<section>
+<img src="assets/sam/sam4.svg" style="width:1600px;height:900px;position:fixed;left:0;top:0;">
+<h2 style="position:fixed;top:20px;left:300px;">Calibration is insufficient</h2>
+<div style="position:fixed;left:500px;top:505px;">average reoffending rate 0.4</div>
+<div style="position:fixed;left:600px;top:805px;">calibrated new scores</div>
+<div style="position:fixed;left:1250px;top:650px;width:250px;">all below 0.5</div>
+</section>
+
+<section>
+<img src="assets/sam/sam5.svg" style="width:1600px;height:900px;position:fixed;left:0;top:0;">
+<h2 style="position:fixed;top:20px;left:20px;">Detention rates and FPR uninformative</h2>
+<div class="fragment">
+<div style="position:fixed;left:1300px;top:255px;font-weight:bold;">DR</div>
+<div style="position:fixed;left:1420px;top:255px;font-weight:bold;">FPR</div>
+<div style="position:fixed;left:1300px;top:400px;">38%</div>
+<div style="position:fixed;left:1420px;top:400px;">25%</div>
+<div style="position:fixed;left:1300px;top:665px;">61%</div>
+<div style="position:fixed;left:1420px;top:665px;">42%</div>
+<div style="position:fixed;left:1280px;top:250px;border-left:2px solid #000;height:600px;"></div>
+<div style="position:fixed;left:1405px;top:250px;border-left:2px solid #000;height:600px;"></div>
+<div style="position:fixed;left:1520px;top:250px;border-left:2px solid #000;height:600px;"></div>
+<div style="position:fixed;left:1280px;top:250px;border-top:2px solid #000;width:240px;"></div>
+<div style="position:fixed;left:1280px;top:320px;border-top:2px solid #000;width:240px;"></div>
+<div style="position:fixed;left:1280px;top:570px;border-top:2px solid #000;width:240px;"></div>
+<div style="position:fixed;left:1280px;top:850px;border-top:2px solid #000;width:240px;"></div>
+</div>
+</section>
+
+<section>
+<img src="assets/sam/sam6.svg" style="width:1600px;height:900px;position:fixed;left:0;top:0;">
+<h2 style="position:fixed;top:20px;left:20px;">Detention rates and FPR uninformative</h2>
+<div style="position:fixed;left:1300px;top:255px;font-weight:bold;">DR</div>
+<div style="position:fixed;left:1420px;top:255px;font-weight:bold;">FPR</div>
+<div style="position:fixed;left:1300px;top:400px;">38%</div>
+<div style="position:fixed;left:1420px;top:400px;">25%</div>
+<div style="position:fixed;left:1300px;top:665px;text-decoration: line-through;">61%</div>
+<div style="position:fixed;left:1420px;top:665px;text-decoration: line-through;">42%</div>
+<div style="position:fixed;left:1300px;top:705px;color:#f00;">42%</div>
+<div style="position:fixed;left:1420px;top:705px;color:#f00;">26%</div>
+<div style="position:fixed;left:1280px;top:250px;border-left:2px solid #000;height:600px;"></div>
+<div style="position:fixed;left:1405px;top:250px;border-left:2px solid #000;height:600px;"></div>
+<div style="position:fixed;left:1520px;top:250px;border-left:2px solid #000;height:600px;"></div>
+<div style="position:fixed;left:1280px;top:250px;border-top:2px solid #000;width:240px;"></div>
+<div style="position:fixed;left:1280px;top:320px;border-top:2px solid #000;width:240px;"></div>
+<div style="position:fixed;left:1280px;top:570px;border-top:2px solid #000;width:240px;"></div>
+<div style="position:fixed;left:1280px;top:850px;border-top:2px solid #000;width:240px;"></div>
+<div style="position:fixed;left:25px;top:770px;color:#f00;">arrest more<br /> low risk individuals</div>
+</section>
+<section id="limitations">
+<h2>How about other criteria?</h2>
+<p class="fragment" style="margin-top:100px;">Can we address the shortcomings of<br /><em>independence</em>, <em>separation</em>, <em>sufficiency</em><br />
+with other criteria?</p>
+<p class="fragment" style="margin-top:100px;">
+There's a fundamental issue...
+</p>
+</section>
+
+<section>
+&nbsp;<br /><br />&nbsp;
+<p> All criteria we've seen so far are <em>observational.</em></p>
+<p class="fragment"><em>Passive</em> observation of
+the world</p>
+<p class="fragment">No <em>what if</em> scenarios or
+<em>interventions</em></p>
+<p class="fragment">
+This leads to inherent limitations
+</p>
+</section>
+
+<section>
+<h2>Observational criteria</h2>
+<div class="fragment
+theorem"><strong>Definition.</strong>&nbsp; A criterion is <em>observational</em> if
+it's a property of the joint distribution of features $X,A$, classifier $C$, outcome $Y$.
+</div>
+<p>&nbsp;</p>
+<blockquote class="fragment">
+Anything you can write down as a probability statement involving $X, A, C, Y.$
+</blockquote>
+<p class="fragment">BTW, what we saw only used $A, C, Y.$</p>
+</section>
+
+<section>
+  <h2>Limitations of observational criteria</h2>
+<p class="fragment"><a
+href="https://arxiv.org/abs/1610.02413">H, Price, Srebro (2016)</a>:<br />
+
+  <p class="fragment">There are two scenarios with identical joint distributions,<br /> 
+but completely different interpretations for fairness.</p>
+  <p class="fragment">In particular, no observational definition<br /> can distinguish the two scenarios.</p>
+</section>
+
+<section>
+<h2>Scenario I</h2>
+
+<div class="fragment">
+<div class="graphnode" style="position:fixed;left:600px;top:235px;">$A$</div>
+<div style="position:fixed;left:500px;top:280px;font-size:28px;">gender</span></div>
+</div>
+
+<div class="fragment">
+<img class="plain rot270" style="position:fixed;left:730px;top:240px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+<div class="leftrightarr" style="position:fixed;left:200px;top:200px;"></div>
+
+<div class="graphnode" style="position:fixed;left:820px;top:235px;">$Y$</div>
+<div style="position:fixed;left:930px;top:280px;font-size:28px;">programmer</span></div>
+</div>
+
+<div class="fragment">
+<img style="position:fixed;left:830px;top:390px;width:80px;" src="assets/github.png" />
+<div
+style="font-size:28px;position:fixed;left:940px;top:400px;text-align:left;">$X_1$: visited<br /> <span style="font-family:monospace">github.com</span></div>
+<img style="position:fixed;left:830px;top:330px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+</div>
+
+<div class="fragment">
+<img style="position:fixed;left:610px;top:400px;width:70px;" src="assets/pinterest.png" />
+<img style="position:fixed;left:610px;top:330px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+<div
+style="font-size:28px;position:fixed;left:380px;top:400px;text-align:right;">$X_2$: visited<br /> <span style="font-family:monospace">pinterest.com</span></div>
+</div>
+
+<div class="fragment">
+<div class="graphnode" style="position:fixed;left:600px;top:550px;">$R^*$</div>
+<div
+style="font-size:28px;position:fixed;left:480px;top:570px;text-align:right;">Optimal<br>
+score</div>
+<img style="position:fixed;left:610px;top:470px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+<img class="plain rot45" style="position:fixed;left:730px;top:470px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+</div>
+
+<div class="fragment">
+<div class="graphnode" style="position:fixed;left:820px;top:550px;">$R$</div>
+<div
+style="font-size:28px;position:fixed;left:930px;top:570px;text-align:left;">Optimal<br />
+separated score</div>
+<img style="position:fixed;left:830px;top:470px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+</div>
+
+</section>
+
+<section>
+<h2>Scenario II</h2>
+
+<div class="fragment">
+<div class="graphnode" style="position:fixed;left:600px;top:400px;">$A$</div>
+<div style="position:fixed;left:500px;top:430px;font-size:28px;">gender</span></div>
+</div>
+
+<div class="fragment">
+<div class="graphnode" style="position:fixed;left:820px;top:235px;">$Y$</div>
+<div style="position:fixed;left:930px;top:280px;font-size:28px;">programmer</span></div>
+</div>
+
+<div class="fragment">
+<img style="position:fixed;left:830px;top:410px;width:80px;" src="assets/graduation.png" />
+<div
+style="font-size:28px;position:fixed;left:940px;top:430px;text-align:left;">$X_1$: obtained<br /> CS degree</div>
+<img class="rot180" style="position:fixed;left:830px;top:330px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+<img class="rot270" style="position:fixed;left:730px;top:410px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+</div>
+
+<div class="fragment">
+<div class="graphnode" style="position:fixed;left:600px;top:235px;">$X_2$</div>
+<img class="rot180" style="position:fixed;left:610px;top:330px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+<img class="plain rot135" style="position:fixed;left:730px;top:330px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+<div style="font-size:28px;position:fixed;left:420px;top:235px;text-align:right;">visited<br /> Grace Hopper<br /> conference</div>
+</div>
+
+<div class="fragment">
+<div class="graphnode" style="position:fixed;left:820px;top:570px;">$R^*$</div>
+<div
+style="font-size:28px;position:fixed;left:930px;top:590px;text-align:left;">Optimal<br
+/>score</div> 
+<img style="position:fixed;left:830px;top:490px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+</div>
+
+<div class="fragment">
+<img class="plain rot45" style="position:fixed;left:730px;top:490px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+<div class="graphnode" style="position:fixed;left:600px;top:570px;">$R$</div>
+<div
+style="font-size:28px;position:fixed;left:380px;top:590px;text-align:right;">Optimal<br>
+separated score</div>
+<img style="position:fixed;left:610px;top:490px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+</div>
+</section>
+
+<section>
+<div style="margin-top:150px;text-align:left" class="theorem">
+<strong>Proposition.</strong> [H, Price, Srebro (2016)]&nbsp;&nbsp; The two scenarios admit identical joint distributions.
+</div>
+<p style="margin-top:180px;font-weight:bold;" class="fragment">No observational criterion can distinguish them.</p>
+</section>
+
+<section id="causal">
+<h2>What do we make of this?</h2>
+<p class="fragment triangle-isosceles">
+Answer to substantive social questions not<br />
+always provided by observational data.
+</p>
+<p class="fragment">
+This is part of what motivates <strong>causal reasoning</strong>.
+</p>
+</section>
+
+<section data-background-color="#7c957f">
+<!-- p>If causality is the answer,<br />
+what was the questions?</p-->
+<img style="margin:200px 200px;" src="assets/raptor.jpg" />
+</section>
+
+<section>
+<h2>Causal graphs</h2>
+<div class="fragment">
+<div class="graphnode" style="position:fixed;left:580px;top:250px;">$U$</div>
+<div class="graphnode" style="position:fixed;left:780px;top:250px;">$V$</div>
+<div class="graphnode" style="position:fixed;left:980px;top:250px;">$W$</div>
+<img class="plain rot270" style="position:fixed;left:700px;top:255px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+<img class="plain rot90" style="position:fixed;left:880px;top:255px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+</div>
+
+<p class="fragment" style="margin-top:200px;">Directed graphical model with extra structure</p>
+<p class="fragment" >
+Structural equation: $V \leftarrow f_V(U, W, N_V)$
+</p>
+<p class="fragment">Describes how data is generated from independent noise variables $\{N_V\}$</p>
+</section>
+
+<section>
+<h2>Examining paths in causal graphs</h2>
+<p class="fragment">
+Inspired by Pearl's analysis of Bickel's UC Berkeley sex bias study.
+</p>
+<p class="fragment">
+Gender bias in admissions <em>explained</em> by<br /> influence of gender 
+on <em>department choice</em>.
+</p>
+<p class="fragment">
+Formally, <em>assuming plausible causal graph</em>,<br />
+only path from $A$ (gender) to decision goes through department
+</p>
+<p class="fragment highlight">
+And, <em>we decide</em> that this is okay.
+</p>
+</section>
+
+<section>
+<h2>Examining paths in causal graphs</h2>
+<p>
+In Scenario II, only path from $A$ to $R^*$ goes through CS:
+</p>
+<div class="fragment">
+<div class="graphnode" style="position:fixed;left:580px;top:335px;">$A$</div>
+<div class="graphnode" style="position:fixed;left:980px;top:335px;">$R^*$</div>
+<div style="position:fixed;left:780px;top:330px;"><img style="width:80px;"src="assets/graduation.png"></div>
+<img class="plain rot270" style="position:fixed;left:700px;top:340px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+<img class="plain rot270" style="position:fixed;left:880px;top:340px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+</div>
+
+<p class="fragment" style="margin-top:200px;">
+In Scenario I, there is a path from $A$ to $R^*$ through pinterest: 
+</p>
+<div class="fragment">
+<div class="graphnode" style="position:fixed;left:580px;top:635px;">$A$</div>
+<div class="graphnode" style="position:fixed;left:980px;top:635px;">$R^*$</div>
+<div style="position:fixed;left:780px;top:640px;"><img style="width:80px;" src="assets/pinterest.png"></div>
+<img class="plain rot270" style="position:fixed;left:700px;top:640px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+<img class="plain rot270" style="position:fixed;left:880px;top:640px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+</div>
+</section>
+
+<section>
+<h2>Interventions</h2>
+<div class="fragment">
+<div class="graphnode" style="position:fixed;left:580px;top:250px;">$U$</div>
+<div class="graphnode" style="position:fixed;left:780px;top:250px;">$V$</div>
+<div class="graphnode" style="position:fixed;left:980px;top:250px;">$W$</div>
+<img class="plain rot270" style="position:fixed;left:700px;top:255px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+<img class="plain rot90" style="position:fixed;left:880px;top:255px;height:70px;width:70px;" src="assets/down-arrow.svg" />
+</div>
+<p class="fragment" style="margin-top:200px;">
+Structural equation: $V \leftarrow f_V(U, W, N_V)$
+</p>
+<p class="fragment">Intervention $\mathrm{do}(W\!\!\leftarrow\!\! w)$: Replace $W$ by $w$ in all structural equations</p>
+<p class="fragment" >
+New structural equation: $V \leftarrow f_V(U, {\color{red}w}, N_V)$
+</p>
+<p class="fragment" >
+Allows to set variables <em>against their natural inclination</em>.
+</p>
+</section>
+
+<section>
+<h2>Some formal possibilities</h2>
+<p class="fragment">
+Average-causal effect of $A$ on score $R$<br />
+$\mathbb{E}[ R \mid do(A=a) ] - \mathbb{E}[R \mid do(A=b) ]$
+</p>
+<p class="fragment">
+Average-causal effect in context $X=x$<br />
+$\mathbb{E}[ R \mid do(A=a), X=x ] - \mathbb{E}[R \mid do(A=b), X=x ]$
+</p>
+</section>
+
+<section>
+<h2>Feasibility of interventions</h2>
+<p class="fragment" >
+But can we <em>actually</em> intervene on sensitive attributes (gender, race)?
+</p>
+<p class="fragment" >
+Practically, generally speaking, no!
+</p>
+<p class="fragment" >
+Is it conceptually possible and meaningful? Perhaps sometimes.
+</p>
+</section>
+
+<section>
+<h2>Advantages of proxy interventions</h2>
+<p class="fragment">
+Consider <em>proxies</em> instead of underlying sensitive attributes<br />
+<a href="https://arxiv.org/abs/1706.02744">Kilbertus, Rojas-Carulla,
+Parascandolo, H, Janzing, Schölkopf (2017)</a><br />
+<span class="fragment">
+Closely related: <a href="https://arxiv.org/abs/1705.10378">Nabi, Shpitser
+(2017)</a>
+</span>
+</p>
+<p class="fragment">Interventions on proxies often more feasible:</p>
+<ul>
+<li class="fragment">
+<em>Effect of parental leave on promotion decisions?</em>
+</li>
+<li class="fragment">
+<em>Effect of visiting pinterest.com on hiring ad?</em>
+</li>
+<li class="fragment">
+<em>Effect of name on resume screening application?</em>
+</li>
+</ul>
+</section>
+
+
+<section>
+<h2>Another formal possibility: Counterfactuals</h2>
+<p class="fragment">What would've happened had <em>I</em> been<br /> of a different
+gender when applying to this job?</p>
+<p class="fragment">
+Leads to notion of <em>counterfactual fairness</em><br /> in 
+<a href="https://papers.nips.cc/paper/7220-when-worlds-collide-integrating-different-counterfactual-assumptions-in-fairness"> Kusner, Loftus, Russell, Sliva (2017)</a>.
+<br />
+<em>See talk at NIPS on Wednesday 4:50p, Hall C</em><br />
+<span class="fragment">
+Also, 
+<a
+href="https://papers.nips.cc/paper/7220-when-worlds-collide-integrating-different-counterfactual-assumptions-in-fairness">Russell,
+Kusner, Loftus, Sliva (2017)</a>.<br /><em>Poster session Wed 6:30p, Pacific Ballroom
+#191</em>
+</span>
+</p>
+</section>
+
+<section>
+<h2>A hierarchy of possibilities</h2>
+<table>
+<tr class="fragment">
+<td>
+Inspect meaning of features
+</td>
+<td>
+No causal inference necessary
+</td>
+<tr class="fragment">
+<td>
+Inspect paths in causal model
+</td>
+<td>
+Qualitative causal understanding
+</td>
+</tr>
+<tr class="fragment">
+<td>
+Estimate average causal effects
+</td>
+<td>
+Causal inference and assumptions
+</td>
+</tr>
+<tr class="fragment">
+<td>
+Estimate individual level counterfactuals
+</td>
+<td>
+Strong quantitative causal understanding
+</td>
+</tr>
+</table>
+
+<p class="fragment">
+Insights often depend strongly on model and assumptions!
+</p>
+</section>
+
+<section>
+<h2>Matchings for causal inference</h2>
+<p class="fragment">Idea: match similar units in treatment and control group</p>
+<p class="fragment">Use matching for estimating causal effect</p>
+<p class="fragment">Variety of techniques, such as, propensity scores</p>
+<p class="fragment">Closely related to <em>individual fairness</em>.</p>
+</section>
+
+<section>
+<h2>Individual fairness</h2>
+<p><a href="https://arxiv.org/abs/1104.3913">Dwork-H-Pitassi-Reingold-Zemel
+(2011)</a></p>
+<p class="fragment">Assume task specific dissimilarity measure $d(x,x')$</p>
+<div class="left">
+<p class="fragment">Require similar individuals map to similar distributions
+over outcomes<br />
+ via map $M\colon\cal{X}\to\Delta(\cal{O})$:</p>
+<p class="fragment">
+$D(M(x), M(x')) \le d(x, x')$
+</p>
+</div>
+<div class="right">
+<div class="fragment">
+<img style="position:fixed;left:800px;top:480px;" src="assets/individualfairness.svg" />
+<div style="position:fixed;left:900px;top:610px;">$x$</div>
+<div style="position:fixed;left:980px;top:650px;">$d(x,x')$</div>
+<div style="position:fixed;left:900px;top:700px;">$x'$</div>
+<div style="position:fixed;left:1300px;top:510px;">$M(x)$</div>
+<div style="position:fixed;left:1280px;top:790px;">$M(x')$</div>
+</div>
+</div>
+</section>
+
+<section id="measurement">
+<a href="https://arxiv.org/abs/1609.07236">Friedler, Scheidegger,
+Venkatasubramanian (2016)</a>
+
+<img src="assets/constructfairness.svg" />
+<div class="fragment" style="position:fixed;left:100px;top:500px;"><strong>Construct space</strong></div>
+<div class="fragment" style="position:fixed;left:600px;top:500px;"><strong>Observed space</strong></div>
+<div class="fragment" style="position:fixed;left:100px;top:600px;">Intelligence</div>
+<div class="fragment" style="position:fixed;left:600px;top:600px;">IQ (e.g., Stanford-Binet scale)</div>
+<div class="fragment" style="position:fixed;left:100px;top:700px;">Risk-averseness</div>
+<div class="fragment" style="position:fixed;left:600px;top:700px;">Age</div>
+<div class="fragment" style="position:fixed;left:100px;top:800px;">Grit</div>
+<div class="fragment" style="position:fixed;left:600px;top:800px;">Duckworth
+Grit Scale (aka NYTimes <a
+href="https://www.nytimes.com/interactive/2016/03/01/us/01grit-quiz.html">grit
+quiz</a>)</div>
+</section>
+
+
+<section data-background-color="#000000">
+
+<h2 style="margin-top:300px;">Where do features come from?</h2>
+</section>
+
+<section data-background-color="#37443a">
+<img  style="margin-top:200px;" src="assets/whatif.jpg" />
+</section>
+
+<section data-background-color="#5b7d7f">
+<img  style="margin-top:200px;" src="assets/neowhat.jpg" />
+</section>
+
+<section>
+<h2>Enter measurement</h2>
+<div class="fragment">
+<em>&quot;the #1 neglected topic in statistics&quot;</em> &mdash; <a
+href="http://andrewgelman.com/2015/04/28/whats-important-thing-statistics-thats-not-textbooks/">Andrew Gelman</a>
+</div>
+<p class="fragment">We'll barely even scratch the surface</p>
+<p class="fragment">See <a
+href="http://www.wiley.com/WileyCDA/WileyTitle/productCd-0470685670.html">Hand
+(2010)</a> for more.</p>
+</section>
+
+<section>
+<h2>Forgotten controversies?</h2>
+<p class="fragment">
+Measurement affects scale of data
+</p>
+<p class="fragment">
+Nominal, ordinal, interval, ratio scales
+</p>
+<p class="fragment">
+How does scale affect the interpretation of statistical analyses?
+</p>
+</section>
+
+<section>
+Stevens (1951, p. 26):
+<blockquote>
+Most of the scales used widely and effectively by psychologists are ordinal
+scales. <span class="fragment">In the strictest propriety the ordinary statistics involving means and
+standard deviations ought not to be used with these scales, for these statistics
+imply a knowledge of something more than the relative rank order of data.</span> <span
+class="fragment">On the
+other hand, <span class="highlight">for this “illegal” statisticizing there can 
+be invoked a kind of pragmatic sanction</span>: in numerous instances it leads
+to fruitful results.</span>
+</blockquote>
+</section>
+
+
+<section>
+<h2>Classical representational measurement</h2>
+<p class="fragment">Explict distinction between <em>empirical relational
+system</em><br /> and <em>numerical relational system</em>
+</p>
+<p class="fragment">
+Formal representation results (e.g., isomorphism exists)
+</p>
+<p class="fragment">
+Example:</p>
+<ul>
+</p>
+<li class="fragment">
+Empirical relationship: Cup A <em>"bigger"</em> than cup B if
+you can pour cup B into A without overflowing.
+</li>
+<li class="fragment">
+Numerical system: Cups assigned to real numbers based on their volume. Relation
+"bigger" becomes "$>$".
+</li>
+</ul>
+</section>
+
+<section>
+<h2>Measurement in the social sciences</h2>
+<p class="fragment">Often &quot;pragmatic&quot;: Measurement procedure defines
+the concept</p>
+<p class="fragment">
+Latent variable models figure prominently<br /> (e.g., item-response models, Rasch
+models)
+</p>
+<p class="fragment">
+Establishing validity of measurement is difficult, and often subjective
+</p>
+</section>
+
+
+<section>
+<h2>Construct Validity</h2>
+Different criteria according to <a
+href="https://en.wikipedia.org/wiki/Construct_validity">Messick</a>:
+<ul>
+<li class="fragment">
+<strong>Content:</strong> Do test items appear to be measuring the construct of interest?
+</li>
+<li class="fragment">
+<strong>Substantive:</strong> Is the construct supported by sound theoretical foundations?
+</li>
+<li class="fragment">
+<strong>Structural:</strong> Does the score reflect relationships in the construct domain?
+</li>
+<li class="fragment">
+<strong>External:</strong> Does the score successfully predict external
+target variables? 
+</li>
+<li class="fragment">
+<strong>Generalizability:</strong> Does the score generalize across different populations,
+settings, tasks?
+</li>
+<li class="fragment">
+<strong>Consequential:</strong> Whare the potential risks of using the score with regards to
+bias, fairness, distributive justice?
+</li>
+</ul>
+</section>
+
+<section id="conclusion">
+<h2>Conclusion</h2>
+<p class="fragment"><strong>Observational criteria</strong> can help discover
+discrimination,<br /> but are <em>insufficient</em> on their own.</p>
+<p class="fragment">No conclusive proof of (un-)fairness</p>
+<p class="fragment"><strong>Causal viewpoint</strong> can help articulate
+problems, organize assumptions</p>
+<p class="fragment">
+Social questions starts with <strong>measurement</strong>
+</p>
+<p class="fragment">Human scrutiny and expertise irreplacable</p>
+</section>
+
+<section>
+<h2>Recommendations</h2>
+<p class="fragment">ML is <em>domain-specific</em>:
+We need to understand legal and social context</p>
+<p class="fragment" style="margin-top:20px;">Besides inspecting models,<br /> scrutinize data and how it was generated</p>
+<p class="fragment" style="margin-top:20px;">Besides static one-shot problems,<br /> 
+study long-term effects, feedback loops, and interventions</p>
+<p class="fragment" style="margin-top:20px;">Establish qualitative understanding of<br /> when/why ML is the
+right tool for the application</p>
+<p class="fragment" style="margin-top:20px;">Establish understanding of what constitutes negligence
+</p>
+</section>
+
+<section>
+<div style="margin-top:100px;">
+<h2>Thank you. Thank you.</h2>
+<img src="assets/dumpster.png" /><br />
+<em>Even a garbage fire brings illumination.</em> &mdash; Paul Ford
+</div>
+</section>
+
+      </div>
+    </div>
+
+    <script src="js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+
+    <script>
+      Reveal.initialize({
+        history: true,
+        transition: 'none',
+        height: 900, 
+        width: 1600,
+        // Factor of the display size that should remain empty around the content
+        margin: 0.05,
+        // Bounds for smallest/largest possible scale to apply to content
+        minScale: 0.2,
+        maxScale: 1.5,
+        center: false,
+        math: {
+          // mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
+          config: 'TeX-AMS_HTML-full'
+        },
+        dependencies: [
+          { src: 'js/classList.js' },
+          { src: 'js/math.js', async: true },
+        ]
+      });
+    </script>
+  </body>
+</html>
